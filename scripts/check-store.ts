@@ -1,0 +1,24 @@
+import assert from 'node:assert/strict';
+import { access } from 'node:fs/promises';
+import { products, normalize } from '../src/lib/catalog.ts';
+import { validQuantity, sanitizeCart, cartTotals, whatsappLink } from '../src/lib/cart.ts';
+assert.equal(products.length, 15);
+for (const p of products) { assert.equal(p.images.length, 2); for (const image of p.images) await access(`public${image}`); }
+for (const q of [10, 11, 12, 13]) assert.ok(validQuantity(q));
+for (const q of [0, 9, 10.5, -1, NaN, Infinity]) assert.equal(validQuantity(q), false);
+assert.deepEqual(sanitizeCart({ 'rosa-claro': 11, 'azul-claro': 9, nope: 20 }), { 'rosa-claro': 11 });
+assert.deepEqual(cartTotals({ 'rosa-claro': 11, 'azul-claro': 12 }), { units: 23, cents: 9200 });
+assert.equal(normalize('LILÁS'), 'lilas');
+assert.equal(whatsappLink('', { 'rosa-claro': 10 }), null);
+assert.equal(whatsappLink('invalid', { 'rosa-claro': 10 }), null);
+assert.equal(whatsappLink('5500000000000', {}), null);
+const url = new URL(whatsappLink('5500000000000', { 'rosa-claro': 11, 'azul-claro': 12 })!);
+assert.equal(url.hostname, 'wa.me');
+assert.equal(url.pathname, '/5500000000000');
+const message = url.searchParams.get('text')!;
+assert.match(message, /Rosa-claro: 11 kits/);
+assert.match(message, /Azul-claro: 12 kits/);
+assert.match(message, /Quantidade total: 23 kits/);
+assert.match(message.replace(/\s/g, ' '), /R\$ 92,00/);
+assert.match(message, /frete/);
+console.log('PASS: 15 colors / 30 assets, integer minimum quantities, cart total, storage sanitization, accent search and WhatsApp message. No messages sent.');

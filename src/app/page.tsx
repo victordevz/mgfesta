@@ -1,5 +1,2 @@
-import { MobileProfile } from "@/components/mobile-profile";
-
-export default function Home() {
-  return <MobileProfile />;
-}
+import Storefront from '@/components/Storefront';
+export default function Home() { return <Storefront />; }

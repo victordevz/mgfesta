@@ -1,35 +1,25 @@
-# MG FESTA Project Guide
-
-Read this file before changing the project.
+# MG FESTAS project guide
 
 ## Project
 
-MG FESTA is a Next.js and TypeScript landing page that recreates a Figma mobile profile layout as a centered website experience.
-
-Source design:
-
-- Figma file key: `wXD5W6weHr7TjprMUjaXtX`
-- Figma frame: `Google Pixel 2 XL - 1`
-- Figma node: `3:2`
-- Canvas size: `411x823`
-
-## Rules
-
-- Keep source code in English.
-- Keep visible brand text as `MG FESTA`.
-- Do not add comments unless they explain a non-obvious technical constraint.
-- Prefer small typed data structures over repeated markup.
-- Keep the mobile frame pixel-faithful to the Figma source.
-- Keep Figma assets local under `public/assets/figma`.
-- Do not reference temporary Figma MCP asset URLs from production code.
-- Preserve SEO metadata in `src/app/layout.tsx`.
+A lightweight, mobile-first Next.js and TypeScript catalog for MG FESTAS, hosted as static assets on Cloudflare Workers. Storefront copy is in Brazilian Portuguese. Keep application code and comments in English; preserve visible brand spelling as `MG FESTAS`.
 
 ## Commands
 
-- `npm run dev`
-- `npm run lint`
-- `npm run build`
+- `npm run dev` starts the local site at http://127.0.0.1:3100.
+- `npm run lint` checks ESLint.
+- `npm run typecheck` checks TypeScript.
+- `npm run check:store` checks catalog, quantity, totals, and WhatsApp URL logic without sending a message.
+- `npm run check:browser` checks the storefront in Chromium at mobile, tablet, and desktop widths.
+- `npm run build` exports the static site to `out/`.
+- `npm run preview` serves the Cloudflare Workers static-assets build locally.
+- `npm run deploy` deploys the built site to the configured Cloudflare Worker.
 
-## Styling
+## Architecture
 
-Tailwind CSS is the styling system. Use exact arbitrary values when matching the Figma frame. Keep responsive behavior simple: the 411px frame is centered on larger screens instead of stretched.
+- Keep catalog and cart rules in typed modules under `src/lib/`.
+- Use CSS Modules for page and component styles.
+- Keep all image assets local under `public/images/`; avoid external asset URLs.
+- Do not commit `.env.local`, secrets, or generated build output.
+- WhatsApp orders must remain an explicit user action; never send messages automatically.
+- Preserve the `mgfesta` Worker name and its `out/` assets directory in `wrangler.json`.

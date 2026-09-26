@@ -1,48 +1,9 @@
-import type { Metadata, Viewport } from "next";
-import "./globals.css";
-
+import type { Metadata } from 'next';
+import './globals.css';
 export const metadata: Metadata = {
-  title: "MG FESTA | Event Experiences in Recife",
-  description:
-    "MG FESTA is a mobile-first landing page for event experiences, party content, and celebrations in Recife, Pernambuco.",
-  applicationName: "MG FESTA",
-  authors: [{ name: "MG FESTA" }],
-  creator: "MG FESTA",
-  publisher: "MG FESTA",
-  robots: {
-    index: true,
-    follow: true,
-  },
-  openGraph: {
-    title: "MG FESTA",
-    description:
-      "Event experiences, party content, and celebrations in Recife, Pernambuco.",
-    siteName: "MG FESTA",
-    locale: "en_US",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "MG FESTA",
-    description:
-      "Event experiences, party content, and celebrations in Recife, Pernambuco.",
-  },
+  title: 'MG FESTAS | Kit Flor e Borboleta em 15 cores',
+  description: 'Um toque de encanto para sua festa. Conheça o Kit Flor e Borboleta MG FESTAS: 15 cores, R$ 4,00 por kit e pedidos a partir de 10 kits por cor.',
 };
-
-export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
-  themeColor: "#ff333a",
-};
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  return (
-    <html lang="en">
-      <body>{children}</body>
-    </html>
-  );
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  return <html lang="pt-BR"><body>{children}</body></html>;
 }
