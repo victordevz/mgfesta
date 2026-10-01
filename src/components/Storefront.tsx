@@ -7,6 +7,7 @@ import { store } from '@/lib/config';
 import Dialog from './Dialog';
 import Quantity from './Quantity';
 import Icon from './Icon';
+import PromoSlider from './PromoSlider';
 import s from './Storefront.module.css';
 
 let memoryCartSnapshot = '{}';
@@ -93,9 +94,7 @@ export default function Storefront() {
       <button className={s.cartButton} onClick={() => { setInvalidRows({}); setCartOpen(true); }} aria-label={`Abrir carrinho, ${totals.units} unidades`}><span className={s.cartIcon}><Icon name="cart" size={28}/>{totals.units > 0 && <span className={s.badge}>{totals.units}</span>}</span><span className={s.cartText}>Meu carrinho<strong>{totals.units} unidades</strong></span></button>
     </header>
     <main className={s.main}>
-      <section className={s.banners} aria-label="Novidades MG FESTAS"><div className={s.hero}><div className={s.heroCopy}><span className={s.eyebrow}><span className={s.newDot}/> NOVIDADE · MG FESTAS</span><h1>Sua festa,<br/>com um toque<br/> de encanto.</h1><p>Conheça nossos <strong>topos de bolo</strong><br/>e kits de flores e borboletas.</p><button className={s.primary} onClick={() => browse()}>Explorar os produtos <Icon name="arrow" size={17}/></button></div><div className={s.heroImage}><Image src="/images/hero-cake.webp" alt="Aplicação ilustrativa: bolo com flores de papel e borboletas rosa-claro" fill sizes="(max-width: 700px) 90vw, 42vw" priority/><span>Aplicação ilustrativa</span></div></div>
-        <div className={s.sideBanners}><button className={`${s.smallBanner} ${s.peach}`} onClick={() => setSelected(products[0])}><div><span className={s.eyebrow}>DELICADEZA EM CADA DETALHE</span><h2>Um clássico<br/>para celebrar.</h2><span className={s.bannerLink}>Ver rosa-claro <Icon name="arrow" size={14}/></span></div><div className={s.smallPhoto}><Image src={products[0].images[0]} alt="Kit rosa-claro" fill sizes="(max-width: 700px) 30vw, 13vw"/></div></button><button className={`${s.smallBanner} ${s.lavender}`} onClick={() => browse('topos-de-bolo')}><div><span className={s.eyebrow}>NOVOS TOPOS DE BOLO</span><h2>Uma mensagem<br/>para celebrar.</h2><span className={s.bannerLink}>Ver os 23 modelos <Icon name="arrow" size={14}/></span></div><div className={s.smallPhoto}><Image src={categories[1].image} alt="Topo de bolo Parabéns" fill sizes="(max-width: 700px) 30vw, 13vw"/></div></button></div>
-      </section>
+      <PromoSlider onBrowse={() => browse()} onChristmas={() => { setCategory('topos-de-bolo'); setQuery('Feliz Natal'); document.getElementById('produtos')?.scrollIntoView({ behavior: 'smooth' }); }} onSelect={setSelected}/>
       <section className={s.categories} aria-labelledby="categories-title">
         <h2 id="categories-title" className={s.sectionLabel}>CATEGORIAS</h2>
         <div className={s.categoryList}>
