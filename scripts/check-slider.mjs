@@ -11,13 +11,20 @@ try {
   for (const width of [320,360,390,700,768,1100,1440,1920]) {
     await page.setViewportSize({width,height:width<701?960:1080});
     await page.goto(origin);
-    const slider=page.getByRole('region',{name:'Destaques MG FESTAS'});
+    const slider=page.getByRole('region',{name:'Destaques MG FESTAS',exact:true});
     const stage=slider.getByRole('group',{name:'1 de 2: Natal MG FESTAS'});
     await expect(stage).toBeVisible();
     await expect(stage.getByRole('button',{name:/Conhecer Topo de bolo Feliz Natal/})).toHaveCount(3);
     await stage.locator('img').evaluateAll(async images => {await Promise.all(images.map(image=>image.decode()));});
     expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
     const first=await slider.boundingBox();
+    const secondary=page.getByRole('region',{name:'Outros destaques MG FESTAS'});
+    await expect(secondary.getByRole('button')).toHaveCount(2);
+    await secondary.locator('img').evaluateAll(async images => { for(const image of images) image.loading='eager'; await Promise.all(images.map(image=>image.decode())); });
+    const small=await secondary.boundingBox();
+    if(width>=1260) { expect(small.x).toBeGreaterThanOrEqual(first.x+first.width); }
+    else { expect(small.y).toBeGreaterThanOrEqual(first.y+first.height); }
+    await page.locator('main > div').first().screenshot({path:`docs/checks/banner-group-${width}.png`});
     const fits=await stage.locator('button').evaluateAll(buttons=>buttons.every(button=>{const b=button.getBoundingClientRect();const s=button.closest('[aria-roledescription="slide"]').getBoundingClientRect();return b.left>=s.left-1&&b.right<=s.right+1&&b.top>=s.top-1&&b.bottom<=s.bottom+1;}));
     expect(fits,`All product photos and CTA fit inside the ${width}px banner`).toBe(true);
     await slider.screenshot({path:`docs/checks/christmas-slider-${width}.png`});
@@ -40,7 +47,13 @@ try {
     report.push({width,firstHeight:first.height,secondHeight:second.height,christmasProducts:3,noHorizontalOverflow:true});
   }
   await page.goto(origin);
-  let slider=page.getByRole('region',{name:'Destaques MG FESTAS'});
+  await page.getByRole('button',{name:'Ver kit rosa-claro',exact:true}).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await page.getByRole('button',{name:'Ver todos os topos de bolo',exact:true}).click();
+  await expect(page.locator('article')).toHaveCount(23);
+  await page.goto(origin);
+  let slider=page.getByRole('region',{name:'Destaques MG FESTAS',exact:true});
   await slider.dispatchEvent('touchstart',{changedTouches:[{identifier:1,clientX:250,clientY:300}]});
   await slider.dispatchEvent('touchend',{changedTouches:[{identifier:1,clientX:100,clientY:310}]});
   await expect(slider.getByRole('group',{name:'2 de 2: Sua festa com encanto'})).toBeVisible();
@@ -54,7 +67,7 @@ try {
   const auto=await browser.newPage({reducedMotion:'no-preference'});
   await auto.clock.install();
   await auto.goto(origin);
-  slider=auto.getByRole('region',{name:'Destaques MG FESTAS'});
+  slider=auto.getByRole('region',{name:'Destaques MG FESTAS',exact:true});
   await expect(slider.getByRole('button',{name:'Pausar banners automáticos'})).toBeVisible();
   await auto.clock.fastForward(8100);
   await expect(slider.getByRole('group',{name:'2 de 2: Sua festa com encanto'})).toBeVisible();

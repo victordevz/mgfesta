@@ -17,7 +17,7 @@ O WhatsApp abre uma mensagem pronta; a pessoa ainda precisa enviá-la. O site n�
 
 ## Banners
 
-A vitrine abre com o banner de Natal e as fotografias originais dos três topos natalinos. O slider inclui um segundo banner geral, setas, indicadores, gesto horizontal no celular e troca automática a cada oito segundos. A troca pausa ao interagir, ao passar o mouse e quando a aba fica oculta; a preferência por movimento reduzido desativa a rotação. O botão de Natal filtra os três produtos, e cada fotografia abre seu produto. O cenário gerado fica em `public/images/banners/`, com o prompt registrado em `docs/christmas-banner-prompt.txt`.
+A vitrine abre com o banner de Natal e as fotografias originais dos três topos natalinos. O slider inclui um segundo banner geral, setas, indicadores, gesto horizontal no celular e troca automática a cada oito segundos. A troca pausa ao interagir, ao passar o mouse e quando a aba fica oculta; a preferência por movimento reduzido desativa a rotação. O botão de Natal filtra os três produtos, e cada fotografia abre seu produto. Os dois banners menores permanecem à direita do slider em telas largas e abaixo dele nas demais larguras. O cenário gerado fica em `public/images/banners/`, com o prompt registrado em `docs/christmas-banner-prompt.txt`.
 
 `npm run check:slider` valida os banners de 320 a 1920 px, a altura estável, navegação, links, gestos, rotação e movimento reduzido. Use `CHECK_URL=https://mgfesta.com.br npm run check:slider` para repetir no site publicado.
 

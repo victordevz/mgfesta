@@ -94,7 +94,13 @@ export default function Storefront() {
       <button className={s.cartButton} onClick={() => { setInvalidRows({}); setCartOpen(true); }} aria-label={`Abrir carrinho, ${totals.units} unidades`}><span className={s.cartIcon}><Icon name="cart" size={28}/>{totals.units > 0 && <span className={s.badge}>{totals.units}</span>}</span><span className={s.cartText}>Meu carrinho<strong>{totals.units} unidades</strong></span></button>
     </header>
     <main className={s.main}>
-      <PromoSlider onBrowse={() => browse()} onChristmas={() => { setCategory('topos-de-bolo'); setQuery('Feliz Natal'); document.getElementById('produtos')?.scrollIntoView({ behavior: 'smooth' }); }} onSelect={setSelected}/>
+      <div className={s.promoLayout}>
+        <PromoSlider onBrowse={() => browse()} onChristmas={() => { setCategory('topos-de-bolo'); setQuery('Feliz Natal'); document.getElementById('produtos')?.scrollIntoView({ behavior: 'smooth' }); }} onSelect={setSelected}/>
+        <section className={s.sideBanners} aria-label="Outros destaques MG FESTAS">
+          <button className={`${s.smallBanner} ${s.peach}`} aria-label="Ver kit rosa-claro" onClick={() => setSelected(products[0])}><div><span className={s.eyebrow}>DELICADEZA EM CADA DETALHE</span><h2>Um clássico<br/>para celebrar.</h2><span className={s.bannerLink}>Ver rosa-claro <Icon name="arrow" size={14}/></span></div><div className={s.smallPhoto}><Image src={products[0].images[0]} alt="Kit rosa-claro" fill sizes="(max-width: 700px) 30vw, (max-width: 1259px) 20vw, 12vw"/></div></button>
+          <button className={`${s.smallBanner} ${s.lavender}`} aria-label="Ver todos os topos de bolo" onClick={() => browse('topos-de-bolo')}><div><span className={s.eyebrow}>NOVOS TOPOS DE BOLO</span><h2>Uma mensagem<br/>para celebrar.</h2><span className={s.bannerLink}>Ver os 23 modelos <Icon name="arrow" size={14}/></span></div><div className={s.smallPhoto}><Image src={categories[1].image} alt="Topo de bolo Parabéns" fill sizes="(max-width: 700px) 30vw, (max-width: 1259px) 20vw, 12vw"/></div></button>
+        </section>
+      </div>
       <section className={s.categories} aria-labelledby="categories-title">
         <h2 id="categories-title" className={s.sectionLabel}>CATEGORIAS</h2>
         <div className={s.categoryList}>
