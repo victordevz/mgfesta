@@ -1,6 +1,6 @@
 # MG FESTAS
 
-Loja mobile-first em Next.js + TypeScript com 15 cores do Kit Flor e Borboleta, duas fotos por cor, modal de produto, carrinho persistente e pedido preenchido pelo WhatsApp.
+Catálogo mobile-first em Next.js + TypeScript com 15 cores do Kit Flor e Borboleta e 23 modelos de topos de bolo. Inclui filtros de categoria, busca, fotografias, modal de produto, carrinho persistente e pedido preenchido pelo WhatsApp, sem preços no site.
 
 ## Rodar localmente
 
@@ -17,7 +17,7 @@ O WhatsApp abre uma mensagem pronta; a pessoa ainda precisa enviá-la. O site n�
 
 ## Catálogo e regras
 
-Os produtos e preços ficam em `src/lib/catalog.ts`. Cada kit custa R$ 4,00. O mínimo inicial é 10 por cor, com incrementos unitários. As fotos WebP ficam em `public/images/products/` e as matrizes do banner e logotipo em `docs/`.
+Os produtos e categorias ficam em `src/lib/catalog.ts`. O catálogo não armazena preços nem calcula valores: o carrinho e a mensagem do WhatsApp listam apenas produtos e quantidades. O mínimo é 10 unidades por cor ou modelo, com incrementos unitários. Os 15 kits têm duas fotos por cor e os 23 topos têm uma foto tratada por modelo. As fotos WebP ficam em `public/images/products/` e as matrizes do banner e logotipo em `docs/`.
 
 ## Validar e publicar
 

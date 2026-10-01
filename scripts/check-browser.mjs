@@ -1,40 +1,70 @@
 import { chromium, expect } from '@playwright/test';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, writeFile } from 'node:fs/promises';
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage();
-const errors = []; page.on('pageerror', error => errors.push(String(error)));
+const errors = [];
+page.on('pageerror', error => errors.push(String(error)));
 const origin = process.env.CHECK_URL || 'http://127.0.0.1:3100';
 const report = [];
 await mkdir('docs/checks', { recursive: true });
+const kitLabel = color => `Kit Flor e Borboleta — ${color}`;
+const topperLabel = 'Topo de bolo Felicidades — Azul-claro metalizado e dourado · Corações';
+const assertNoPrices = async () => {
+  expect(await page.locator('body').innerText()).not.toMatch(/R\$|Subtotal|4,00/);
+  expect(await page.locator('meta[name="description"]').getAttribute('content')).not.toMatch(/R\$|4,00/);
+};
 try {
   for (const width of [360, 390, 768, 1440, 1920]) {
     await page.setViewportSize({ width, height: width < 700 ? 844 : 1080 });
-    console.log('Checking width', width); await page.goto(origin); await page.evaluate(() => scrollTo(0, 0)); await page.locator('article').first().waitFor(); await page.waitForFunction(() => Array.from(document.images).filter(i => i.getBoundingClientRect().top < innerHeight && i.getBoundingClientRect().bottom > 0).every(i => i.complete && i.naturalWidth > 0), { timeout: 60000 });
-    await expect(page.locator('article')).toHaveCount(15);
+    console.log('Checking width', width);
+    await page.goto(origin);
+    await page.evaluate(() => scrollTo(0, 0));
+    await expect(page.locator('article')).toHaveCount(38);
+    await page.waitForFunction(() => Array.from(document.images).filter(i => i.getBoundingClientRect().top < innerHeight && i.getBoundingClientRect().bottom > 0).every(i => i.complete && i.naturalWidth > 0), { timeout: 60000 });
     const layout = await page.evaluate(() => ({ viewport: innerWidth, page: document.documentElement.scrollWidth, columns: getComputedStyle(document.querySelector('#produtos > div:nth-child(2)')).gridTemplateColumns.split(' ').length }));
     expect(layout.page).toBeLessThanOrEqual(width);
     expect(layout.columns).toBe(width <= 700 ? 2 : width <= 1100 ? 3 : 6);
+    await assertNoPrices();
+    await page.locator('img').evaluateAll(images => images.forEach(i => { i.loading = 'eager'; }));
+    await page.waitForFunction(() => Array.from(document.images).every(i => i.complete && i.naturalWidth > 0));
     await page.screenshot({ path: `docs/checks/home-${width}.png`, fullPage: true });
     report.push({ width, ...layout });
   }
-  // Continuous resizing across breakpoints must not cause horizontal scrolling.
   for (const width of [320, 430, 600, 699, 700, 701, 900, 1099, 1100, 1101, 1600]) {
     await page.setViewportSize({ width, height: 900 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   }
   await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('button', { name: /Flor e Borboleta Kit 15 cores/ }).click();
+  await expect(page.locator('article')).toHaveCount(15);
   await page.getByRole('textbox', { name: 'Buscar produtos' }).fill('LILAS');
   await expect(page.locator('article')).toHaveCount(1);
   await page.getByRole('textbox', { name: 'Buscar produtos' }).fill('inexistente');
-  await expect(page.getByText('Nenhuma cor encontrada')).toBeVisible();
-  await page.getByRole('button', { name: 'Ver todas as cores' }).click();
-  await expect(page.locator('article')).toHaveCount(15);
-  const trigger = page.getByRole('button', { name: 'Ver Kit Flor e Borboleta Rosa-claro', exact: true });
-  await trigger.click();
+  await expect(page.getByText('Nenhum produto encontrado')).toBeVisible();
+  await page.getByRole('button', { name: 'Ver todos os produtos' }).click();
+  await expect(page.locator('article')).toHaveCount(38);
+  await page.getByRole('textbox', { name: 'Buscar produtos' }).fill('GRATIDAO');
+  await expect(page.locator('article')).toHaveCount(8);
+  await page.getByRole('button', { name: /Topos de bolo 23 modelos/ }).click();
+  await expect(page.locator('article')).toHaveCount(23);
+  await expect(page.getByRole('button', { name: /Topos de bolo 23 modelos/ })).toHaveAttribute('aria-pressed', 'true');
+  await page.screenshot({ path: 'docs/checks/topos-mobile.png', fullPage: true });
+  const topperTrigger = page.getByRole('button', { name: `Ver ${topperLabel}`, exact: true });
+  await topperTrigger.click();
   let dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible();
-  await dialog.getByRole('button', { name: 'Ver ângulo 2' }).click();
-  await expect(dialog.getByRole('img', { name: 'Kit Rosa-claro, ângulo 2', exact: true })).toBeVisible();
+  await expect(dialog.getByRole('button', { name: /Ver fotografia/ })).toHaveCount(1);
+  await expect(dialog.getByRole('img', { name: `${topperLabel}, fotografia 1`, exact: true })).toBeVisible();
+  await assertNoPrices();
+  await page.screenshot({ path: 'docs/checks/topo-product-mobile.png', fullPage: false });
+  await dialog.getByRole('button', { name: 'Adicionar ao carrinho' }).click();
+  await expect(topperTrigger).toBeFocused();
+  await page.getByRole('button', { name: /Todos os produtos 38/ }).click();
+  const trigger = page.getByRole('button', { name: `Ver ${kitLabel('Rosa-claro')}`, exact: true });
+  await trigger.click();
+  dialog = page.getByRole('dialog');
+  await dialog.getByRole('button', { name: 'Ver fotografia 2' }).click();
+  await expect(dialog.getByRole('img', { name: `${kitLabel('Rosa-claro')}, fotografia 2`, exact: true })).toBeVisible();
   await dialog.getByRole('button', { name: 'Ampliar fotografia' }).click();
   await expect(dialog.getByRole('button', { name: 'Reduzir fotografia' })).toHaveAttribute('aria-pressed', 'true');
   await dialog.getByRole('button', { name: 'Reduzir fotografia' }).click();
@@ -43,29 +73,32 @@ try {
   for (const value of ['9', '10.5', '']) { await input.fill(value); await expect(add).toBeDisabled(); }
   for (const value of ['10', '11', '12', '13']) { await input.fill(value); await expect(add).toBeEnabled(); }
   await input.fill('11');
-  await page.screenshot({ path: 'docs/checks/product-mobile.png', fullPage: false });
+  await assertNoPrices();
   await add.click();
   await expect(dialog).toHaveCount(0);
   await expect(trigger).toBeFocused();
-  await page.getByRole('button', { name: 'Ver Kit Flor e Borboleta Azul-claro', exact: true }).click();
+  await page.getByRole('button', { name: `Ver ${kitLabel('Azul-claro')}`, exact: true }).click();
   dialog = page.getByRole('dialog');
   await dialog.getByRole('textbox', { name: 'Quantidade de Azul-claro', exact: true }).fill('12');
   await dialog.getByRole('button', { name: 'Adicionar ao carrinho' }).click();
-  await page.getByRole('button', { name: 'Abrir carrinho, 23 kits', exact: true }).click();
+  await page.getByRole('button', { name: 'Abrir carrinho, 33 unidades', exact: true }).click();
   dialog = page.getByRole('dialog');
-  await expect(dialog.getByText('R$ 92,00', { exact: true })).toBeVisible();
+  await expect(dialog.getByText('33 unidades', { exact: true })).toBeVisible();
+  await assertNoPrices();
   const checkout = dialog.getByRole('link', { name: 'Finalizar pelo WhatsApp' });
-  await expect(checkout).toBeVisible();
   const checkoutUrl = new URL(await checkout.getAttribute('href'));
   expect(checkoutUrl.hostname).toBe('wa.me');
   expect(checkoutUrl.pathname).toBe('/5581981472018');
-  const checkoutMessage = (checkoutUrl.searchParams.get('text') || '').replace(/\u00a0/g, ' ');
-  expect(checkoutMessage).toContain('23 kits');
-  expect(checkoutMessage).toContain('R$ 92,00');
+  const checkoutMessage = checkoutUrl.searchParams.get('text') || '';
+  expect(checkoutMessage).toContain('Quantidade total: 33 unidades');
+  expect(checkoutMessage).toContain(`${topperLabel}: 10 unidades`);
+  expect(checkoutMessage).toContain('Rosa-claro: 11 unidades');
+  expect(checkoutMessage).not.toMatch(/R\$|Subtotal|\d+[,.]\d{2}/);
   await page.screenshot({ path: 'docs/checks/cart-mobile.png', fullPage: false });
   await page.reload();
-  await page.getByRole('button', { name: 'Abrir carrinho, 23 kits', exact: true }).click();
+  await page.getByRole('button', { name: 'Abrir carrinho, 33 unidades', exact: true }).click();
   dialog = page.getByRole('dialog');
+  await expect(dialog.getByRole('textbox', { name: `Quantidade de ${topperLabel}`, exact: true })).toHaveValue('10');
   await expect(dialog.getByRole('textbox', { name: 'Quantidade de Rosa-claro', exact: true })).toHaveValue('11');
   await dialog.getByRole('button', { name: 'Aumentar quantidade de Rosa-claro', exact: true }).click();
   await expect(dialog.getByRole('textbox', { name: 'Quantidade de Rosa-claro', exact: true })).toHaveValue('12');
@@ -76,16 +109,25 @@ try {
   await expect(dialog.getByRole('button', { name: 'Confira as quantidades' })).toBeDisabled();
   await dialog.getByRole('textbox', { name: 'Quantidade de Rosa-claro', exact: true }).fill('10');
   await dialog.getByRole('button', { name: 'Remover Azul-claro', exact: true }).click();
-  await expect(dialog.getByRole('textbox', { name: 'Quantidade de Azul-claro', exact: true })).toHaveCount(0);
-  await page.keyboard.press('Escape'); await expect(dialog).toHaveCount(0);
-  await trigger.click();
+  await dialog.getByRole('button', { name: `Remover ${topperLabel}`, exact: true }).click();
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+  await page.getByRole('button', { name: `Ver ${kitLabel('Rosa-claro')}`, exact: true }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Adicionar ao carrinho' }).click();
-  await page.getByRole('button', { name: 'Abrir carrinho, 20 kits', exact: true }).click();
+  await page.getByRole('button', { name: 'Abrir carrinho, 20 unidades', exact: true }).click();
   await expect(page.getByRole('dialog').getByRole('textbox', { name: 'Quantidade de Rosa-claro', exact: true })).toHaveValue('20');
   await page.keyboard.press('Escape');
-  await page.getByRole('button', { name: /Flor e Borboleta Kit/ }).click();
-  await expect(page.locator('article')).toHaveCount(15);
+  await page.getByRole('button', { name: /Como comprar/ }).click();
+  await assertNoPrices();
+  await page.keyboard.press('Escape');
+  const photos = (await readdir('public/images/products')).filter(f => f.endsWith('.webp'));
+  expect(photos).toHaveLength(53);
+  for (const photo of photos) {
+    const response = await page.request.get(`${origin}/images/products/${photo}`);
+    expect(response.status(), photo).toBe(200);
+    expect(response.headers()['content-type'], photo).toContain('image/webp');
+  }
   expect(errors).toEqual([]);
-  await writeFile('docs/checks/report.json', JSON.stringify({ status: 'passed', layouts: report, runtimeErrors: errors, scenarios: ['responsive widths and breakpoints', '15 products', 'accent-insensitive search and empty state', 'two-angle gallery and zoom', 'minimum and integer quantities', '23 kits = BRL 92', 'storage persistence', 'quantity edit and removal', 'same-color grouping', 'focus restoration and Escape', 'category', 'configured WhatsApp URL and message inspected without sending'] }, null, 2));
-  console.log('PASS: responsive layouts, gallery, search, cart, quantities, persistence, keyboard and configured checkout URL (not opened).');
+  await writeFile('docs/checks/report.json', JSON.stringify({ status: 'passed', origin, layouts: report, runtimeErrors: errors, products: 38, cakeToppers: 23, verifiedPhotos: photos.length, scenarios: ['responsive widths and breakpoints', 'category filters', 'accent-insensitive search', 'one-photo toppers and two-photo kits', 'no prices in cards, dialogs, cart, help or metadata', 'mixed cart and price-free checkout message', 'minimum integer quantities', 'storage persistence', 'quantity edit and removal', 'same-product grouping', 'keyboard and focus restoration', 'all 53 photo URLs HTTP 200'] }, null, 2));
+  console.log('PASS: 38 products, 23 toppers, 53 photos, responsive layouts, search, mixed cart, persistence and checkout without prices. No messages sent.');
 } finally { await browser.close(); }
